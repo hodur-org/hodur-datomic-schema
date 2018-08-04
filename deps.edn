@@ -1,0 +1,19 @@
+{:paths ["src"]
+
+ :deps
+ {org.clojure/clojure   {:mvn/version "1.9.0"}
+  datascript            {:mvn/version "0.16.6"}
+  camel-snake-kebab     {:mvn/version "0.4.0"}}
+
+ :aliases
+ {:dev
+  {:extra-deps
+   {hodur-engine {:local/root "../hodur-engine"}}}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps
+   {hodur-engine {:local/root "../hodur-engine"}
+    com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                               :sha "5fb4fc46ad0bf2e0ce45eba5b9117a2e89166479"}}
+   :main-opts ["-m" "cognitect.test-runner"]}}}
