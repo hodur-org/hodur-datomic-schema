@@ -1,6 +1,7 @@
 (ns hodur-datomic-schema.core
   (:require [camel-snake-kebab.core :refer [->kebab-case-string]]
-            [datascript.core :as d]))
+            [datascript.core :as d]
+            [datascript.query-v3 :as q]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing functions
@@ -33,7 +34,6 @@
     (primitive-or-ref-type field)))
 
 (defn ^:private get-cardinality
-  "Given a field, returns the Datomic :db.cardinality"
   [{:keys [field/arity]}]
   (if arity
     (if (and (= (first arity) 1)
@@ -66,75 +66,93 @@
                m field)))
 
 (defn ^:private process-field
-  [entity-id {:keys [field/name] :as field}]
-  (-> {:db/ident (keyword entity-id
-                          (->kebab-case-string name))
-       :db/valueType (get-value-type field)
-       :db/cardinality (get-cardinality field)}
-      (assoc-documentation field)
-      (assoc-attributes field)))
+  [entity-id is-enum? {:keys [field/name] :as field}]
+  (cond-> {:db/ident (keyword entity-id
+                              (->kebab-case-string name))}
+    (not is-enum?) (assoc :db/valueType (get-value-type field)
+                          :db/cardinality (get-cardinality field))
+    (not is-enum?) (assoc-attributes field)
+    
+    :always        (assoc-documentation field)))
 
 
-(defmulti ^:private get-type
-  (fn [{:keys [datomic/enum]}]
-    (if enum :enum :type)))
-
-(defmethod get-type :type
-  [{:keys [type/name field/_parent] :as t}]
+(defn ^:private get-type
+  [{:keys [type/name type/enum field/_parent]}]
   (let [entity-id (->kebab-case-string name)]
-    (reduce (fn [c field]
-              (conj c (process-field entity-id field)))
-            [] _parent)))
+    (->> _parent
+         (sort-by :field/name)
+         (reduce (fn [c field]
+                   (conj c (process-field entity-id enum field)))
+                 []))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defn schema
   [conn]
-  (let [types
-        (d/q '[:find
-               [(pull ?e [* {:field/_parent
-                             [* {:field/type [*]}]}]) ...]
-               :where
-               [?e :type/nature :user]
-               [?e :datomic/tag true]]
-             @conn)]
-    (reduce (fn [c t]
-              (concat c (get-type t)))
-            [] types)))
+  (let [selector '[* {:field/_parent
+                      [* {:field/type [*]}]}]
+        eids (-> (q/q '[:find ?e
+                        :where
+                        [?e :type/nature :user]
+                        [?e :datomic/tag true]
+                        (not [?e :type/interface true])]
+                      @conn)
+                 vec flatten)
+        types (->> eids
+                   (d/pull-many @conn selector)
+                   (sort-by :type/name))]
+    (->> types
+         (reduce (fn [c t]
+                   (concat c (get-type t)))
+                 [])
+         vec)))
 
 
 (comment
-  (require '[hodur-engine.core :as engine])
+  (do
+    (require '[hodur-engine.core :as engine])
 
-  (def conn (engine/init-schema
-             '[^{:datomic/tag true}
-               default
+    (def conn (engine/init-schema
+               '[^{:datomic/tag true}
+                 default
 
-               Employee
-               [^String name
-                ^{:type String
-                  :doc "The very employee number of this employee"
-                  :datomic/unique :db.unique/identity}
-                number
-                ^Float salary
-                ^Integer age
-                ^DateTime start-date
-                ^Employee supervisor
-                ^{:type Employee
-                  :arity [0 n]}
-                co-workers
-                ^{:datomic/type :db.type/keyword}
-                keword-type
-                ^{:datomic/type :db.type/uri}
-                uri-type
-                ^{:datomic/type :db.type/double}
-                double-type
-                ^{:datomic/type :db.type/bigdec
-                  :deprecation "This is deprecated" }
-                bigdec-type]]))
+                 ^:interface
+                 Person
+                 [^String name]
+                 
+                 Employee
+                 [^String name
+                  ^{:type String
+                    :doc "The very employee number of this employee"
+                    :datomic/unique :db.unique/identity}
+                  number
+                  ^Float salary
+                  ^Integer age
+                  ^DateTime start-date
+                  ^Employee supervisor
+                  ^{:type Employee
+                    :arity [0 n]
+                    :doc "Has documentation"
+                    :deprecation "But also deprecation"}
+                  co-workers
+                  ^{:datomic/type :db.type/keyword}
+                  keword-type
+                  ^{:datomic/type :db.type/uri}
+                  uri-type
+                  ^{:datomic/type :db.type/double}
+                  double-type
+                  ^{:datomic/type :db.type/bigdec
+                    :deprecation "This is deprecated" }
+                  bigdec-type
+                  ^EmploymentType employment-type]
 
-  (clojure.pprint/pprint
-   (schema conn)))
+                 ^{:enum true}
+                 EmploymentType
+                 [FULL_TIME
+                  ^{:doc "Documented enum"}
+                  PART_TIME]]))
+
+    (clojure.pprint/pprint
+     (schema conn))))
