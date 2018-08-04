@@ -95,8 +95,8 @@
                       [* {:field/type [*]}]}]
         eids (-> (q/q '[:find ?e
                         :where
-                        [?e :type/nature :user]
                         [?e :datomic/tag true]
+                        [?e :type/nature :user]
                         (not [?e :type/interface true])
                         (not [?e :type/union true])]
                       @conn)
