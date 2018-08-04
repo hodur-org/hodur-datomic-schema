@@ -97,7 +97,8 @@
                         :where
                         [?e :type/nature :user]
                         [?e :datomic/tag true]
-                        (not [?e :type/interface true])]
+                        (not [?e :type/interface true])
+                        (not [?e :type/union true])]
                       @conn)
                  vec flatten)
         types (->> eids
@@ -146,8 +147,13 @@
                   ^{:datomic/type :db.type/bigdec
                     :deprecation "This is deprecated" }
                   bigdec-type
-                  ^EmploymentType employment-type]
-
+                  ^EmploymentType employment-type
+                  ^SearchResult last-search-results]
+                 
+                 ^{:union true}
+                 SearchResult
+                 [Employee Person EmploymentType]
+                 
                  ^{:enum true}
                  EmploymentType
                  [FULL_TIME
@@ -155,4 +161,6 @@
                   PART_TIME]]))
 
     (clojure.pprint/pprint
-     (schema conn))))
+     (schema conn)))
+
+  )
