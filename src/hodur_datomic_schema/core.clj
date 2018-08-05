@@ -34,12 +34,12 @@
     (primitive-or-ref-type field)))
 
 (defn ^:private get-cardinality
-  [{:keys [field/arity]}]
-  (if arity
-    (if (and (= (first arity) 1)
-             (= (second arity) 1))
+  [{:keys [field/cardinality]}]
+  (if cardinality
+    (if (and (= (first cardinality) 1)
+             (= (second cardinality) 1))
       :db.cardinality/one
-      :db.cardinality/many) 
+      :db.cardinality/many)
     :db.cardinality/one))
 
 (defn ^:private assoc-documentation
@@ -134,7 +134,7 @@
                   ^DateTime start-date
                   ^Employee supervisor
                   ^{:type Employee
-                    :arity [0 n]
+                    :cardinality [0 n]
                     :doc "Has documentation"
                     :deprecation "But also deprecation"}
                   co-workers
