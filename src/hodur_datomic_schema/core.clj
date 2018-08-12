@@ -81,8 +81,10 @@
   (let [entity-id (->kebab-case-string name)]
     (->> _parent
          (sort-by :field/name)
-         (reduce (fn [c field]
-                   (conj c (process-field entity-id enum field)))
+         (reduce (fn [c {:keys [datomic/tag] :as field}]
+                   (if tag
+                     (conj c (process-field entity-id enum field))
+                     c))
                  []))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
