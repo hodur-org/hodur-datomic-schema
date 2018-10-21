@@ -1,9 +1,11 @@
 {:paths ["src"]
 
  :deps
- {org.clojure/clojure   {:mvn/version "1.9.0"}
-  hodur-engine          {:local/root "../hodur-engine"}
-  camel-snake-kebab     {:mvn/version "0.4.0"}}
+ {org.clojure/clojure {:mvn/version "1.9.0"}
+  hodur/engine        {:mvn/version "0.1.0"}
+  camel-snake-kebab   {:mvn/version "0.4.0"}
+  datascript          {:git/url "https://github.com/luchiniatwork/datascript.git"
+                       :sha "5385de9fcc7343031c024421bdb6895906ab6c11"}}
 
  :aliases
  {:dev
@@ -12,7 +14,5 @@
 
   :test
   {:extra-paths ["test"]
-   :extra-deps
-   {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
-                               :sha "5fb4fc46ad0bf2e0ce45eba5b9117a2e89166479"}}
-   :main-opts ["-m" "cognitect.test-runner"]}}}
+   :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-189"}}
+   :main-opts ["-m" "kaocha.runner"]}}}

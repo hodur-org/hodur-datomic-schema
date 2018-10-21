@@ -141,7 +141,7 @@
                     :deprecation "But also deprecation"}
                   co-workers
                   ^{:datomic/type :db.type/keyword}
-                  keword-type
+                  keyword-type
                   ^{:datomic/type :db.type/uri}
                   uri-type
                   ^{:datomic/type :db.type/double}
