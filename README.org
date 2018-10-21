@@ -276,7 +276,8 @@ functional manner.
 * Documentation and Deprecation
 
   Because of Datomic's central modeling around attributes, only field
-  documentation and deprecation is parsed.
+  documentation and deprecation is parsed. Enum entries can also be
+  documented/deprecated as they are considered fields in Hodur.
 
   All fields marked with ~:doc~ will immediately get a ~:db/doc~ entry
   in their Datomic schema definition.
