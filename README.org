@@ -1,0 +1,115 @@
+#+TITLE:   Hodur Datomic Schema
+#+AUTHOR:  Tiago Luchini
+#+EMAIL:   info@tiagoluchini.eu
+#+OPTIONS: toc:t
+
+Hodur is a descriptive domain modeling approach and related collection
+of libraries for Clojure.
+
+By using Hodur you can define your domain model as data, parse and
+validate it, and then either consume your model via an API making your
+apps respond to the defined model or use one of the many plugins to
+help you achieve mechanical, repetitive results faster and in a purely
+functional manner.
+
+* Motivation
+
+  For a deeper insight into the motivations behind Hodur, check the
+  [[https://github.com/luchiniatwork/hodur-engine/blob/master/docs/MOTIVATION.org][motivation doc]].
+
+* Getting Started
+
+  Hodur has a highly modular architecture. [[https://github.com/luchiniatwork/hodur-engine][Hodur Engine]] is always
+  required as it provides the meta-database functions and APIs
+  consumed by plugins.
+
+  Therefore, refer the [[https://github.com/luchiniatwork/hodur-engine#getting-started][Hodur Engine's Getting Started]] first and then
+  return here for Datomic-specific setup.
+
+  After having set up ~hodur-engine~ as described above, we are also
+  need to add ~hodur-datomic-schema~, a plugin that creates Datomic
+  Schemas out of your model to the ~deps.edn~ file:
+
+#+BEGIN_SRC clojure
+  {:deps {:hodur/engine         {:mvn/version "0.1.0"}
+          :hodur/datomic-schema {:mvn/version "0.1.0"}}}
+#+END_SRC
+
+  You should ~require~ it any way you see fit:
+
+#+BEGIN_SRC clojure
+  (require '[hodur-datomic-schema.core :as hodur-datomic])
+#+END_SRC
+
+  Let's expand our ~Person~ model above by "tagging" the ~Person~
+  entity for Datomic. You can read more about the concept of tagging
+  for plugins in the sessions below but, in short, this is the way we,
+  model designers, use to specify which entities we want to be exposed
+  to which plugins.
+
+#+BEGIN_SRC clojure
+  (def meta-db (hodur/init-schema
+                '[^{:datomic/tag-recursive true}
+                  Person
+                  [^String first-name
+                   ^String last-name]]))
+#+END_SRC
+
+  The ~hodur-datomic-schema~ plugin exposes a function called ~schema~
+  that generates your model as a Datomic schema payload:
+
+#+BEGIN_SRC clojure
+  (def datomic-schema (hodur-datomic/schema meta-db))
+#+END_SRC
+
+  When you inspect ~datomic-schema~, this is what you have:
+
+#+BEGIN_SRC clojure
+  [#:db{:ident :person/first-name,
+        :valueType :db.type/string,
+        :cardinality :db.cardinality/one}
+   #:db{:ident :person/last-name,
+        :valueType :db.type/string,
+        :cardinality :db.cardinality/one}]
+#+END_SRC
+
+  Assuming the Datomic client API is bound to ~datomic~, and your
+  connection to the Database cluster is bound to ~db-conn~, you can
+  simply transact your schema like this:
+
+#+BEGIN_SRC clojure
+  (datomic/transact db-conn {:tx-data datomic-schema})
+#+END_SRC
+
+* Model Definition
+
+  All Hodur plugins follow the [[https://github.com/luchiniatwork/hodur-engine#model-definition][Model Definition]] as described on Hodur
+  [[https://github.com/luchiniatwork/hodur-engine#model-definition][Engine's documentation]].
+
+* Naming Convention
+
+* Identity and Uniqueness
+
+* Scalar Types and Finer Grained Control
+
+* Interfaces, Unions and Enums
+
+* Documentation and Deprecation
+
+* Entity Parameters
+
+* Bugs
+
+  If you find a bug, submit a [[https://github.com/luchiniatwork/hodur-datomic-schema/issues][GitHub issue]].
+
+* Help!
+
+  This project is looking for team members who can help this project
+  succeed! If you are interested in becoming a team member please open
+  an issue.
+
+* License
+
+  Copyright © 2018 Tiago Luchini
+
+  Distributed under the MIT License (see [[./LICENSE][LICENSE]]).
