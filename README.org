@@ -86,17 +86,203 @@ functional manner.
   All Hodur plugins follow the [[https://github.com/luchiniatwork/hodur-engine#model-definition][Model Definition]] as described on Hodur
   [[https://github.com/luchiniatwork/hodur-engine#model-definition][Engine's documentation]].
 
-* Naming Convention
+* Attribute Naming Convention
 
-* Identity and Uniqueness
+  Datomic's foundational modeling unit is the atom. An atom is the
+  relationship between an Entity, an Attribute, its Value, and the
+  Time at which the combination was valid.
+
+  With such an approach, Datomic attributes become central to the
+  modeling effort and Hodur takes advantage of that.
+
+  A Datomic attribute such as ~:person/name~ will be defined in Hodur
+  as the ~name~ attribute of the ~Person~ entity:
+
+#+BEGIN_SRC clojure
+  [Person
+   [^String name]]
+#+END_SRC
+
+  In the example above we are describing the Datomic attribute
+  ~:person/name~ a little more than just by giving its name. By
+  tagging it as a ~String~, the schema generator understands the above
+  as:
+
+#+BEGIN_SRC clojure
+  [{:db/ident :person/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}]
+#+END_SRC
+
+  All naming conversions by this plugin are for a kebab-cased
+  approach.
+
+* Attribute Properties
+
+  Datomic attributes can have a series of properties. In order to
+  utilize them simple mark the Hodur attribute as described in the
+  table below:
+
+| Hodur marker           | Datomic equivalent | Notes                                       |
+|------------------------+--------------------+---------------------------------------------|
+| ~:datomic/unique~      | ~:db/unique~       | ~:db.unique/identity~ or ~:db.unique/value~ |
+| ~:datomic/index~       | ~:db/index~        | ~true~ or ~false~ (default)                 |
+| ~:datomic/fulltext~    | ~:db/fulltext~     | ~true~ or ~false~ (default)                 |
+| ~:datomic/isComponent~ | ~:db/isComponent~  | ~true~ or ~false~ (default)                 |
+| ~:datomic/noHistory~   | ~:db/noHistory~    | ~true~ or ~false~ (default)                 |
+
+  You can find more details about each of these on the [[https://docs.datomic.com/][Datomic
+  documentation]]. Do be aware that the modeling options are slightly
+  different between Datomic Cloud and Datomic On-Prem.
 
 * Scalar Types and Finer Grained Control
 
-* Interfaces, Unions and Enums
+  The table below shows how Hodur's primitive scalar types are mapped
+  by default to Datomic scalar types:
+
+| Hodur Scalar | Datomic Scalar     |
+|--------------+--------------------|
+| ~String~     | ~:db.type/string~  |
+| ~Float~      | ~:db.type/float~   |
+| ~Integer~    | ~:db.type/long~    |
+| ~Boolean~    | ~:db.type/boolean~ |
+| ~DateTime~   | ~:db.type/instant~ |
+| ~ID~         | ~:db.type/uuid~    |
+
+  If you need to have access to specific types you can override
+  Hodur's automatic behavior by using the marker ~:datomic/type~:
+
+#+BEGIN_SRC clojure
+  [ExampleEntity
+   [^{:datomic/type :db.type/keyword}
+    keyword-type
+    ^{:datomic/type :db.type/uri}
+    uri-type
+    ^{:datomic/type :db.type/double}
+    double-type
+    ^{:datomic/type :db.type/bigdec}
+    bigdec-type]]
+#+END_SRC
+
+  Each of the attributes above are now using Datomic-specific
+  scalars. The schema below is a result of the definition above:
+
+#+BEGIN_SRC clojure
+  [{:db/ident       :example-entity/bigdec-type
+    :db/valueType   :db.type/bigdec
+    :db/cardinality :db.cardinality/one}
+   {:db/ident       :example-entity/double-type
+    :db/valueType   :db.type/double,
+    :db/cardinality :db.cardinality/one}
+   {:db/ident       :example-entity/keyword-type
+    :db/valueType   :db.type/keyword
+    :db/cardinality :db.cardinality/one}
+   {:db/ident       :example-entity/uri-type
+    :db/valueType   :db.type/uri
+    :db/cardinality :db.cardinality/one}]
+#+END_SRC
+
+* Cardinality
+
+  The ~:cardinality~ marker is respected by Hodur Datomic Schema in
+  relation to ~one~ vs. ~many~. Datomic does not have the finer
+  control that Hodur has so the plugin simply converts cardinalities
+  to either ~:db.cardinality/one~ or ~:db.cardinality/many~.
+
+  In the example below the attribute ~supervisor~ has a cardinality of
+  1 to an ~Employee~ while the attribute ~co-workers~ has a complex
+  cardinality of ~0~ to ~n~ to potentially many ~Employee~:
+
+#+BEGIN_SRC clojure
+  [Employee
+   [^String name
+    ^Employee supervisor
+    ^{:type Employee
+      :cardinality [0 n]}
+    co-workers]]
+#+END_SRC
+
+  Hodur will infer that:
+
+- ~:employee/supervisor~ is a ~:db.type/ref~ of
+  ~:db.cardinality/one~
+- ~:employee/co-workers~ is a ~:db.type/ref~ of
+  ~:db.cardinality/many~
+
+  The above definition leads to:
+
+#+BEGIN_SRC clojure
+  [{:db/ident       :employee/co-workers,
+    :db/valueType   :db.type/ref,
+    :db/cardinality :db.cardinality/many}
+   {:db/ident       :employee/name,
+    :db/valueType   :db.type/string,
+    :db/cardinality :db.cardinality/one}
+   {:db/ident       :employee/supervisor,
+    :db/valueType   :db.type/ref,
+    :db/cardinality :db.cardinality/one}]
+#+END_SRC
+
+* Special Treatments
+
+** Interfaces and Unions
+
+   Interfaces proper do not exist in Datomic so they are ignored in
+   Hodur's Datomic plugin.
+
+   Unions are also do not exist in Datomic per se. Hodur's Datomic
+   plugin also ignores them. However, they can be emulated by the
+   resulting Datomic schema. Datomic's ~:db.type/ref~ will be used if
+   you specify a union. Therefore, it is possible to relate that
+   attribute to any kind of Datomic entity. Of course, this wouldn't
+   respect the boundaries of the union you specified but, if you
+   really need unions, that's a way to go about it.
+
+** Enums
+
+   The traditional way to use enums in Datomic is to create one
+   ~:db/ident~ for each option.
+
+   This is the route that Hodur takes then. Example:
+
+#+BEGIN_SRC clojure
+  [Person
+   [^String name
+    ^Gender gender]
+
+   ^:enum
+   Gender
+   [MALE FEMALE PREFER_NOT_TO_REPORT]]
+#+END_SRC
+
+   This is also a good example of how naming conventions are used:
+
+#+BEGIN_SRC clojure
+  [{:db/ident :gender/female}
+   {:db/ident :gender/male}
+   {:db/ident :gender/prefer-not-to-report}
+   {:db/ident :person/gender
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :person/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}]
+#+END_SRC
+
+** Parameters
+
+   Field parameters do not exist on Datomic so they are ignored.
 
 * Documentation and Deprecation
 
-* Entity Parameters
+  Because of Datomic's central modeling around attributes, only field
+  documentation and deprecation is parsed.
+
+  All fields marked with ~:doc~ will immediately get a ~:db/doc~ entry
+  in their Datomic schema definition.
+
+  If a field is marked as deprecated with ~:deprecation~ a deprecation
+  note is added to Datomic's ~:db/doc~ entry.
 
 * Bugs
 
