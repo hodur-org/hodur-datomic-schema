@@ -34,13 +34,13 @@ functional manner.
   Therefore, refer the [[https://github.com/luchiniatwork/hodur-engine#getting-started][Hodur Engine's Getting Started]] first and then
   return here for Datomic-specific setup.
 
-  After having set up ~hodur-engine~ as described above, we are also
-  need to add ~hodur-datomic-schema~, a plugin that creates Datomic
-  Schemas out of your model to the ~deps.edn~ file:
+  After having set up ~hodur-engine~ as described above, we also need
+  to add ~hodur/datomic-schema~, a plugin that creates Datomic Schemas
+  out of your model to the ~deps.edn~ file:
 
 #+BEGIN_SRC clojure
-  {:deps {:hodur/engine         {:mvn/version "0.1.2"}
-          :hodur/datomic-schema {:mvn/version "0.1.0"}}}
+  {:deps {hodur/engine         {:mvn/version "0.1.2"}
+          hodur/datomic-schema {:mvn/version "0.1.0"}}}
 #+END_SRC
 
   You should ~require~ it any way you see fit:
