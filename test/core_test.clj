@@ -15,7 +15,13 @@
                              ^:interface
                              Person
                              [^String name]
-                             
+
+                             Client
+                             [^{:type ID :datomic/ns :company} id]
+
+                             Employer
+                             [^{:type ID :datomic/ns :company} id]
+
                              Employee
                              [^String name
                               ^{:type String
@@ -52,7 +58,10 @@
                              [FULL_TIME
                               ^{:doc "Documented enum"}
                               PART_TIME]])]
-    (is (= [#:db{:ident :employee/age
+    (is (= [#:db{:ident :company/id
+                 :valueType :db.type/uuid
+                 :cardinality :db.cardinality/one}
+            #:db{:ident :employee/age
                  :valueType :db.type/long
                  :cardinality :db.cardinality/one}
             #:db{:ident :employee/bigdec-type

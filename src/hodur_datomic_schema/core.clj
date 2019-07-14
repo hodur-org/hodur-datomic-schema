@@ -80,12 +80,23 @@
   [{:keys [type/name type/enum field/_parent]}]
   (let [entity-id (->kebab-case-string name)]
     (->> _parent
-         (sort-by :field/name)
+         (sort-by :field/name)         
          (reduce (fn [c {:keys [datomic/tag] :as field}]
                    (if tag
-                     (conj c (process-field entity-id enum field))
+                     (conj c (process-field (-> field
+                                                :datomic/ns
+                                                (or entity-id)
+                                                (clojure.core/name)) enum field))
                      c))
                  []))))
+
+(defn ^:private verify-repeated-type-equality
+  [partitioned-fields]
+  (doall (map #(if (not (apply = %))
+                (throw (IllegalArgumentException.
+                         (str "Multiple fields specified with the same namespace and name but differing values " %))))
+           partitioned-fields))
+  partitioned-fields)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public functions
@@ -110,6 +121,10 @@
          (reduce (fn [c t]
                    (concat c (get-type t)))
                  [])
+         (sort-by :db/ident)
+         (partition-by :db/ident)
+         (verify-repeated-type-equality)
+         (mapv first)
          vec)))
 
 
