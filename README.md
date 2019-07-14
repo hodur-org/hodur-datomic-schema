@@ -150,13 +150,14 @@ Datomic attributes can have a series of properties. In order to
 utilize them simple mark the Hodur attribute as described in the table
 below:
 
-| Hodur marker           | Datomic equivalent | Notes                                       |
-|------------------------|--------------------|---------------------------------------------|
-| `:datomic/unique`      | `:db/unique`       | `:db.unique/identity` or `:db.unique/value` |
-| `:datomic/index`       | `:db/index`        | `true` or `false` (default)                 |
-| `:datomic/fulltext`    | `:db/fulltext`     | `true` or `false` (default)                 |
-| `:datomic/isComponent` | `:db/isComponent`  | `true` or `false` (default)                 |
-| `:datomic/noHistory`   | `:db/noHistory`    | `true` or `false` (default)                 |
+| Hodur marker           | Datomic equivalent | Notes                                            |
+|------------------------|--------------------|--------------------------------------------------|
+| `:datomic/unique`      | `:db/unique`       | `:db.unique/identity` or `:db.unique/value`      |
+| `:datomic/index`       | `:db/index`        | `true` or `false` (default)                      |
+| `:datomic/fulltext`    | `:db/fulltext`     | `true` or `false` (default)                      |
+| `:datomic/isComponent` | `:db/isComponent`  | `true` or `false` (default)                      |
+| `:datomic/noHistory`   | `:db/noHistory`    | `true` or `false` (default)                      |
+| `:datomic/ns`          | -                  | Keyword identifying the target datomic namespace |
 
 You can find more details about each of these on the [Datomic
 documentation][datomic]. Do be aware that the modeling options are
@@ -297,6 +298,25 @@ This is also a good example of how naming conventions are used:
 ### Parameters
 
 Field parameters do not exist on Datomic so they are ignored.
+
+### Namespaces
+
+  If the attribute should belong to a datomic namespace that doesn't
+  match the entity name, change it with the property `:datomic/ns` :
+
+``` clojure
+  [Employee
+   [^{:type String
+      :datomic/ns :person} name]]
+```
+
+  The above definition leads to:
+
+``` clojure
+  [{:db/ident       :person/name,
+    :db/valueType   :db.type/string,
+    :db/cardinality :db.cardinality/one}]
+```
 
 ## Documentation and Deprecation
 
