@@ -15,7 +15,7 @@
                              ^:interface
                              Person
                              [^String name]
-                             
+
                              Employee
                              [^String name
                               ^{:type String
@@ -45,11 +45,11 @@
                               ^{:datomic/type :db.type/tuple
                                 :datomic/tupleAttrs [number employment-type] ; contrived example
                                 :datomic/unique :db.unique/identity} composite+tuple]
-                             
+
                              ^{:union true}
                              SearchResult
                              [Employee Person EmploymentType]
-                             
+
                              ^{:enum true}
                              EmploymentType
                              [FULL_TIME
@@ -67,11 +67,6 @@
                  :cardinality :db.cardinality/many
                  :doc
                  "Has documentation\n\nDEPRECATION NOTE: But also deprecation"}
-            #:db{:ident :employee/composite+tuple,
-                 :valueType :db.type/tuple,
-                 :cardinality :db.cardinality/one,
-                 :unique :db.unique/identity,
-                 :tupleAttrs [:employee/number :employee/employment-type]}
             #:db{:ident :employee/double-type
                  :valueType :db.type/double
                  :cardinality :db.cardinality/one}
@@ -104,6 +99,11 @@
             #:db{:ident :employee/uri-type
                  :valueType :db.type/uri
                  :cardinality :db.cardinality/one}
+            #:db{:ident :employee/composite+tuple,
+                 :valueType :db.type/tuple,
+                 :cardinality :db.cardinality/one,
+                 :unique :db.unique/identity,
+                 :tupleAttrs [:employee/number :employee/employment-type]}
             #:db{:ident :employment-type/full-time}
             #:db{:ident :employment-type/part-time
                  :doc "Documented enum"}]
