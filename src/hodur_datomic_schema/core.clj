@@ -81,13 +81,14 @@
 (defn ^:private get-type
   [{:keys [type/name type/enum field/_parent]}]
   (let [entity-id (->kebab-case-string name)]
-    (->> _parent
-         (sort-by :field/name)
-         (reduce (fn [c {:keys [datomic/tag] :as field}]
-                   (if tag
-                     (conj c (process-field entity-id enum field))
-                     c))
-                 []))))
+    (let [non-tuples (->> _parent (remove :datomic/tupleAttrs) (sort-by :field/name))
+          tuples     (->> _parent (filter :datomic/tupleAttrs) (sort-by :field/name))]
+      (->> (concat non-tuples tuples)
+           (reduce (fn [c {:keys [datomic/tag] :as field}]
+                     (if tag
+                       (conj c (process-field entity-id enum field))
+                       c))
+                   [])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public functions
