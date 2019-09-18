@@ -73,7 +73,7 @@
                           :db/cardinality (get-cardinality field))
     (not is-enum?) (assoc-attributes field)
 
-    tupleAttrs     (assoc :db/tupleAttrs (map #(keyword entity-id (str %)) tupleAttrs))
+    tupleAttrs     (assoc :db/tupleAttrs (into [] (map #(keyword entity-id (str %)) tupleAttrs)))
     
     :always        (assoc-documentation field)))
 
