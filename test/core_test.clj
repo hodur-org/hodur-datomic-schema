@@ -15,7 +15,7 @@
                              ^:interface
                              Person
                              [^String name]
-                             
+
                              Employee
                              [^String name
                               ^{:type String
@@ -41,12 +41,15 @@
                                 :deprecation "This is deprecated" }
                               bigdec-type
                               ^EmploymentType employment-type
-                              ^SearchResult last-search-results]
-                             
+                              ^SearchResult last-search-results
+                              ^{:datomic/type :db.type/tuple
+                                :datomic/tupleAttrs [number employment-type] ; contrived example
+                                :datomic/unique :db.unique/identity} composite+tuple]
+
                              ^{:union true}
                              SearchResult
                              [Employee Person EmploymentType]
-                             
+
                              ^{:enum true}
                              EmploymentType
                              [FULL_TIME
@@ -96,6 +99,11 @@
             #:db{:ident :employee/uri-type
                  :valueType :db.type/uri
                  :cardinality :db.cardinality/one}
+            #:db{:ident :employee/composite+tuple,
+                 :valueType :db.type/tuple,
+                 :cardinality :db.cardinality/one,
+                 :unique :db.unique/identity,
+                 :tupleAttrs [:employee/number :employee/employment-type]}
             #:db{:ident :employment-type/full-time}
             #:db{:ident :employment-type/part-time
                  :doc "Documented enum"}]

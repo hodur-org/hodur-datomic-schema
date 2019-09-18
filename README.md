@@ -188,7 +188,9 @@ automatic behavior by using the marker `:datomic/type`:
     ^{:datomic/type :db.type/double}
     double-type
     ^{:datomic/type :db.type/bigdec}
-    bigdec-type]]
+    bigdec-type
+    ^{:datomic/type :db.type/tuple
+      :datomic/tupleAttrs [year season]} composite+tuple]]
 ```
 
 Each of the attributes above are now using Datomic-specific
@@ -198,6 +200,10 @@ scalars. The schema below is a result of the definition above:
   [{:db/ident       :example-entity/bigdec-type
     :db/valueType   :db.type/bigdec
     :db/cardinality :db.cardinality/one}
+   {:db/ident       :example-entity/composite+tuple
+    :db/valueType   :db.type/tuple
+    :db/cardinality :db.cardinality/one
+    :db/tupleAttrs  [:example-entity/year :example-entity/season]}    
    {:db/ident       :example-entity/double-type
     :db/valueType   :db.type/double,
     :db/cardinality :db.cardinality/one}

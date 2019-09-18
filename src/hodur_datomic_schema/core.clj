@@ -66,12 +66,14 @@
                m field)))
 
 (defn ^:private process-field
-  [entity-id is-enum? {:keys [field/name] :as field}]
+  [entity-id is-enum? {:keys [field/name datomic/tupleAttrs] :as field}]
   (cond-> {:db/ident (keyword entity-id
                               (->kebab-case-string name))}
     (not is-enum?) (assoc :db/valueType (get-value-type field)
                           :db/cardinality (get-cardinality field))
     (not is-enum?) (assoc-attributes field)
+
+    tupleAttrs     (assoc :db/tupleAttrs (into [] (map #(keyword entity-id (str %)) tupleAttrs)))
     
     :always        (assoc-documentation field)))
 
@@ -79,13 +81,14 @@
 (defn ^:private get-type
   [{:keys [type/name type/enum field/_parent]}]
   (let [entity-id (->kebab-case-string name)]
-    (->> _parent
-         (sort-by :field/name)
-         (reduce (fn [c {:keys [datomic/tag] :as field}]
-                   (if tag
-                     (conj c (process-field entity-id enum field))
-                     c))
-                 []))))
+    (let [non-tuples (->> _parent (remove :datomic/tupleAttrs) (sort-by :field/name))
+          tuples     (->> _parent (filter :datomic/tupleAttrs) (sort-by :field/name))]
+      (->> (concat non-tuples tuples)
+           (reduce (fn [c {:keys [datomic/tag] :as field}]
+                     (if tag
+                       (conj c (process-field entity-id enum field))
+                       c))
+                   [])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public functions
