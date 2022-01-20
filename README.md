@@ -59,7 +59,7 @@ add `hodur/datomic-schema`, a plugin that creates Datomic Schemas out
 of your model to the `deps.edn` file:
 
 ``` clojure
-  {:deps {hodur/engine         {:mvn/version "0.1.6"}
+  {:deps {hodur/engine         {:mvn/version "0.1.9"}
           hodur/datomic-schema {:mvn/version "0.1.0"}}}
 ```
 
@@ -190,7 +190,7 @@ automatic behavior by using the marker `:datomic/type`:
     ^{:datomic/type :db.type/bigdec}
     bigdec-type
     ^{:datomic/type :db.type/tuple
-      :datomic/tupleAttrs [year season]} composite+tuple]]
+      :datomic/tupleAttrs [keyword-type uri-type]} composite+tuple]]
 ```
 
 Each of the attributes above are now using Datomic-specific
@@ -203,7 +203,7 @@ scalars. The schema below is a result of the definition above:
    {:db/ident       :example-entity/composite+tuple
     :db/valueType   :db.type/tuple
     :db/cardinality :db.cardinality/one
-    :db/tupleAttrs  [:example-entity/year :example-entity/season]}    
+    :db/tupleAttrs  [:example-entity/keyword-type :example-entity/uri-type]}
    {:db/ident       :example-entity/double-type
     :db/valueType   :db.type/double,
     :db/cardinality :db.cardinality/one}
