@@ -1,5 +1,5 @@
-[circleci-badge]: https://circleci.com/gh/hodur-org/hodur-datomic-schema.svg?style=shield&circle-token=62ae347c27855ff99f24e47c2cea3719cc4ca13d
-[circleci]: https://circleci.com/gh/hodur-org/hodur-datomic-schema
+[ci-badge]: https://github.com/hodur-org/hodur-datomic-schema/actions/workflows/test.yml/badge.svg
+[ci-link]: https://github.com/hodur-org/hodur-datomic-schema/actions/workflows/test.yml
 [clojars-badge]: https://img.shields.io/clojars/v/hodur/datomic-schema.svg
 [clojars]: http://clojars.org/hodur/datomic-schema
 [datomic]: https://docs.datomic.com/
@@ -18,7 +18,7 @@
 
 # Hodur Datomic Schema
 
-[![CircleCI][circleci-badge]][circleci]
+[![CI][ci-badge]][ci-link]
 [![Clojars][hodur-engine-clojars-badge]][hodur-engine-clojars]
 [![Clojars][clojars-badge]][clojars]
 [![License][license-badge]][license]
