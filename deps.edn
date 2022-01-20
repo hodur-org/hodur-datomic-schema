@@ -1,10 +1,10 @@
 {:paths ["src"]
 
  :deps
- {org.clojure/clojure {:mvn/version "1.9.0"}
-  hodur/engine        {:mvn/version "0.1.0"}
-  camel-snake-kebab   {:mvn/version "0.4.0"}
-  datascript          {:mvn/version "0.16.7"}}
+ {org.clojure/clojure                   {:mvn/version "1.10.3"}
+  hodur/engine                          {:mvn/version "0.1.9"}
+  camel-snake-kebab/camel-snake-kebab   {:mvn/version "0.4.2"}
+  datascript/datascript                 {:mvn/version "1.3.6"}}
 
  :aliases
  {:dev
@@ -13,5 +13,5 @@
 
   :test
   {:extra-paths ["test"]
-   :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-189"}}
+   :extra-deps {lambdaisland/kaocha {:mvn/version "1.60.977"}}
    :main-opts ["-m" "kaocha.runner"]}}}
